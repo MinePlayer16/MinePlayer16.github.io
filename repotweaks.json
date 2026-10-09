@@ -1,0 +1,63 @@
+{
+  "repoName": "MinePlayer16's Repository",
+  "author": "MinePlayer16/Iggy05",
+  "tweaks": [
+    {
+      "id": "lightsaber.hide-dock",
+      "name": "Hide Dock",
+      "description": "Hides the dock background on the home screen. Also hides app icons in the dock — move them to the home screen grid before applying. Respring to restore.",
+      "version": "1.0.5",
+      "author": "@MinePlayer16",
+      "symbol": "dock.rectangle",
+      "scriptURL": "https://raw.githubusercontent.com/MinePlayer16/MinePlayer16.github.io/refs/heads/main/tweaks/hide_dock.js"
+    },
+    {
+      "id": "lightsaber.hide-homebar",
+      "name": "Hide Home Bar",
+      "description": "Hides the bottom home indicator. Respring after applying so SpringBoard refreshes the asset cache.",
+      "version": "1.0.2",
+      "author": "0xjohnny",
+      "symbol": "line.3.horizontal",
+      "scriptURL": "https://raw.githubusercontent.com/MinePlayer16/MinePlayer16.github.io/refs/heads/main/tweaks/hide_homebar.js"
+    },
+    {
+      "id": "lightsaber.dock-color",
+      "name": "Dock Color",
+      "description": "Colors the dock background with a custom color. Works on iOS 26 and earlier.",
+      "version": "1.0.0",
+      "author": "@MinePlayer16",
+      "symbol": "paintpalette.fill",
+      "scriptURL": "https://raw.githubusercontent.com/MinePlayer16/MinePlayer16.github.io/refs/heads/main/tweaks/dock_color.js"
+    },
+    {
+      "id": "lightsaber.hide-search-pill",
+      "name": "Hide Search Pill",
+      "description": "Hides the search pill on the home screen. Only tested on iOS 18 and below.",
+      "version": "1.0.6",
+      "author": "@MinePlayer16",
+      "symbol": "magnifyingglass",
+      "scriptURL": "https://raw.githubusercontent.com/MinePlayer16/MinePlayer16.github.io/refs/heads/main/tweaks/hide_searchpill.js",
+      "maxIOS": "18.x",
+      "compatibilityNote": "Only tested on iOS 18 and below.",
+      "unsupportedMessage": "Only tested on iOS 18 and below."
+    },
+    {
+      "id": "lightsaber.floating-icons",
+      "name": "Floating Icons",
+      "description": "Adds gentle floating animations to home-screen and dock icons. Configurable movement, rotation, and scale.",
+      "version": "1.0.1",
+      "author": "@MinePlayer16",
+      "symbol": "wind",
+      "scriptURL": "https://raw.githubusercontent.com/MinePlayer16/MinePlayer16.github.io/refs/heads/main/tweaks/floating_icons.js"
+    },
+    {
+      "id": "lightsaber.dump-views",
+      "name": "Dump Views",
+      "description": "Diagnostic tool that dumps visible SpringBoard view trees to /tmp.",
+      "version": "1.0.0",
+      "author": "@MinePlayer16",
+      "symbol": "ladybug.fill",
+      "scriptURL": "https://raw.githubusercontent.com/MinePlayer16/MinePlayer16.github.io/refs/heads/main/tweaks/dump_views.js"
+    }
+  ]
+}
