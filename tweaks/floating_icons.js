@@ -8,7 +8,7 @@
 (function () {
     "use strict";
 
-    var VERSION = "1.0.0";
+    var VERSION = "1.0.1";
     say("[Floating Icons] Running v" + VERSION + "...");
 
     function say(msg) {
@@ -32,8 +32,19 @@
         if (typeof v === "string") return v !== "" && v !== "0" && v !== "0x0";
         return !!v;
     }
-    function responds(obj, sel) { if (!isPtr(obj)) return false; try { return typeof r_responds === "function" ? truthy(r_responds(obj, r_sel(sel))) : true; } catch (_) { return false; } }
-    function call(obj, sel, main, a1, a2, a3, a4) { if (!isPtr(obj) || !responds(obj, sel)) return 0; return main ? msgMain(obj, sel, a1, a2, a3, a4) : msg(obj, sel, a1, a2, a3, a4); }
+    
+    //converts the string to a native selector
+    function responds(obj, sel) { 
+        if (!isPtr(obj)) return false; 
+        try { 
+            return typeof r_responds === "function" ? truthy(r_responds(obj, r_sel(sel))) : true; 
+        } catch (_) { return false; } 
+    }
+    
+    function call(obj, sel, main, a1, a2, a3, a4) { 
+        if (!isPtr(obj) || !responds(obj, sel)) return 0; 
+        return main ? msgMain(obj, sel, a1, a2, a3, a4) : msg(obj, sel, a1, a2, a3, a4); 
+    }
 
     function clampNumber(value, lo, hi, def) {
         var n = Number(value);
@@ -74,19 +85,6 @@
     var animRot = createAnim("transform.rotation.z", (-curRot).toString(), curRot.toString(), "2.9");
     var animScale = createAnim("transform.scale", curScale.toString(), "1.0", "5.1");
 
-    function iconManager() {
-        var ctrl = msg(cls("SBIconController"), "sharedInstance");
-        return msg(ctrl, "iconManager");
-    }
-
-    function rootFolderView(mgr) {
-        var rootController = call(mgr, "rootFolderController", false);
-        var rootView = call(rootController, "rootFolderView", true);
-        if (!isPtr(rootView)) rootView = call(rootController, "rootFolderViewIfLoaded", true);
-        if (!isPtr(rootView)) rootView = call(rootController, "folderView", true);
-        return rootView;
-    }
-
     function addTarget(targets, view, label) {
         if (!isPtr(view)) return;
         var key = String(view);
@@ -98,35 +96,62 @@
         if (!isPtr(view)) return false;
         var layer = msgMain(view, "layer");
         if (!isPtr(layer)) return false;
+        
         var keys = ["FloatY", "FloatX", "FloatRot", "FloatScale"];
         for (var i = 0; i < keys.length; i++) msgMain(layer, "removeAnimationForKey:", ns(keys[i]));
+        
         msgMain(layer, "addAnimation:forKey:", animY, ns("FloatY"));
         msgMain(layer, "addAnimation:forKey:", animX, ns("FloatX"));
         msgMain(layer, "addAnimation:forKey:", animRot, ns("FloatRot"));
         msgMain(layer, "addAnimation:forKey:", animScale, ns("FloatScale"));
+        
         say("[Floating Icons] Animated " + label + ".");
         return true;
     }
 
-    var mgr = iconManager();
-    var rootView = rootFolderView(mgr);
+    // Helper for iOS 26+ rootFolderView bypassing responds() checks
+    function rootFolderView(mgr) {
+        var rootController = msg(mgr, "rootFolderController");
+        if (!isPtr(rootController)) rootController = msg(mgr, "_rootFolderController");
+        
+        var rootView = msgMain(rootController, "rootFolderView");
+        if (!isPtr(rootView)) rootView = msgMain(rootController, "rootFolderViewIfLoaded");
+        if (!isPtr(rootView)) rootView = msgMain(rootController, "folderView");
+        
+        return rootView;
+    }
+
+    var ctrl = msg(cls("SBIconController"), "sharedInstance");
+    var mgr = msg(ctrl, "iconManager");
     var targets = [];
 
-    // Dock list: iOS 26 SBHIconManager/rootFolderView paths plus legacy controller fallback.
-    addTarget(targets, call(mgr, "dockListView", false), "dockListView");
-    addTarget(targets, call(rootView, "dockListView", true), "rootFolderView.dockListView");
-
-    // Home icons: animate the scroll view that owns icon list pages.
-    addTarget(targets, call(rootView, "scrollView", true), "rootFolderView.scrollView");
-    var rootController = call(mgr, "rootFolderController", false);
-    if (!isPtr(rootController)) {
-        rootController = call(mgr, "_rootFolderController", false);
+    // Locates Dock (iOS 18 + iOS 26)
+    var dockList = msg(mgr, "dockListView");
+    if (!isPtr(dockList)) dockList = msg(ctrl, "dockListView"); // iOS 18 fallback
+    if (!isPtr(dockList)) {
+        var rootView = rootFolderView(mgr);
+        if (isPtr(rootView)) dockList = msgMain(rootView, "dockListView"); // iOS 26
     }
-    var folderView = call(rootController, "folderView", true);
-    addTarget(targets, call(folderView, "scrollView", true), "folderView.scrollView");
+    addTarget(targets, dockList, "dockListView");
+
+    // Locates Homescreen (iOS 18 + iOS 26)
+    var rootFC = msg(mgr, "rootFolderController");
+    if (!isPtr(rootFC)) rootFC = msg(mgr, "_rootFolderController"); // iOS 18 fallback
+    
+    if (isPtr(rootFC)) {
+        var folderView = msgMain(rootFC, "folderView");
+        addTarget(targets, msgMain(folderView, "scrollView"), "folderView.scrollView");
+    } else {
+        var rootView = rootFolderView(mgr);
+        if (isPtr(rootView)) {
+            addTarget(targets, msgMain(rootView, "scrollView"), "rootFolderView.scrollView");
+        }
+    }
 
     var applied = 0;
-    for (var i = 0; i < targets.length; i++) if (applyAnimations(targets[i].view, targets[i].label)) applied++;
+    for (var i = 0; i < targets.length; i++) {
+        if (applyAnimations(targets[i].view, targets[i].label)) applied++;
+    }
 
     say(applied > 0 ? "[Floating Icons] SUCCESS: applied animation to " + applied + " layer(s)." : "[Floating Icons] ERROR: no icon layers found.");
 })();
